@@ -693,9 +693,9 @@ const data = document.getElementById('team-data')
 
 const splitHex = (value) => {
     return {
-        red: parseInt(value.slice(1, 3), 16),
-        green: parseInt(value.slice(3, 5), 16),
-        blue: parseInt(value.slice(5, 7), 16)
+        r: parseInt(value.slice(1, 3), 16),
+        g: parseInt(value.slice(3, 5), 16),
+        b: parseInt(value.slice(5, 7), 16)
     };
 };
 
@@ -704,16 +704,17 @@ const splitRgb = (value) => {
         .split(',')
         .map((v) => parseInt(v, 10));
     return {
-        red: parts[0],
-        green: parts[1],
-        blue: parts[2]
+        r: parts[0],
+        g: parts[1],
+        b: parts[2]
     };
 };
 
-const hue = (colour) => {
-    const r = colour.red / 255;
-    const g = colour.green / 255;
-    const b = colour.blue / 255;
+// rgb(2, 105, 59)
+const hsv = (colour) => {
+    const r = colour.r / 255;
+    const g = colour.g / 255;
+    const b = colour.b / 255;
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
     const c = max - min;
@@ -728,13 +729,25 @@ const hue = (colour) => {
     } else if (max === b) {
         hue = (r - g) / c + 4;
     }
-    return Math.round(hue * 60);
+
+    return {
+        h: Math.round(hue * 60),
+        s: (max === 0) ? 0 : c / max,
+        v: max
+    };
 };
 
 const all = (obj, value) => {
    return Object.keys(obj).reduce((acc, cur) => {
        return acc && obj[cur] === value;
    }, true);
+};
+
+const calculateDifference = (hsv1, hsv2) => {
+    const dh = Math.abs(hsv1.h - hsv2.h);
+    const ds = Math.abs(hsv1.s - hsv2.s);
+    const dv = Math.abs(hsv1.v - hsv2.v);
+    return dh + ds * 10 + dv * 10;
 };
 
 const classifyColour = (value) => {
@@ -746,7 +759,7 @@ const classifyColour = (value) => {
     if (all(colour, 0)) {
         return 'black';
     }
-    if (all(colour, colour.red)) {
+    if (all(colour, colour.r)) {
         return 'gray';
     }
 
@@ -758,14 +771,13 @@ const classifyColour = (value) => {
         pink: '#ff00ff',
         purple: '#9900ff',
         orange: '#ff9900',
-        cyan: '#00ffff'
+        cyan: '#0099ff'
     };
 
-    const h = hue(colour);
-
+    const hsvColour = hsv(colour);
     const names = Object.keys(colours);
     const diffs = names.map((name) => {
-        return Math.abs(hue(splitHex(colours[name])) - h);
+        return calculateDifference(hsv(splitHex(colours[name])), hsvColour);
     });
     const min = Math.min(...diffs);
     const index = diffs.indexOf(min);

@@ -74,9 +74,10 @@ private fun Document.extractColours(baseUri: Uri) =
                     ?.get("background-color")
                     ?.trim()
                     ?.let {
-                        if (it.matches("^#[A-Fa-f0-9]{6}(/#?[A-Fa-f0-9]{6})?$".toRegex())) it.split("/").map { colour ->
-                            if (colour.startsWith("#")) colour else "#$colour"
-                        }
+                        if (it.matches("^#[A-Fa-f0-9]{6}(/#?[A-Fa-f0-9]{6})?$".toRegex()))
+                            it.split("/").map { colour ->
+                                if (colour.startsWith("#")) colour else "#$colour"
+                            }
                         else null
                     }
             } else {
